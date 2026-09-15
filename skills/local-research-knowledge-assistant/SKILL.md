@@ -1,6 +1,6 @@
 ---
 name: local-research-knowledge-assistant
-description: 将用户与对话模型完成的论文总结或讨论记录整理为统一的 Obsidian 本地笔记，生成标签、更新 Topic 知识与对比综述，推荐相关研究，并按要求通过 Git 推送云端。支持总结文本、Markdown 和可访问的对话分享链接，不要求管理原始 PDF。
+description: 将论文总结、讨论记录、公众号或机构推送与技术资讯整理为统一的 Obsidian 本地笔记，生成标签、更新 Topic 知识与对比综述，推荐相关研究，并按要求通过 Git 推送云端。支持总结文本、Markdown 和可访问链接，不要求管理原始 PDF。
 ---
 
 # 本地研究知识库助理
@@ -22,7 +22,7 @@ description: 将用户与对话模型完成的论文总结或讨论记录整理�
 - 接收总结或对话链接、生成标准笔记：读取 [reading.md](references/reading.md)。用户需要向对话模型索取交接材料时，提供 [交接提示词](assets/conversation-handoff-prompt.md)。
 - Topic 聚合、研究问题地图、方法脉络、对比表与领域知识更新：读取 [topic-synthesis.md](references/topic-synthesis.md)。
 - 推荐尚未了解的论文与研究进展：读取 [recommendations.md](references/recommendations.md)。
-- 新闻/技术资料整理与信息嗅探综合消化：读取 [information-digest.md](references/information-digest.md)。
+- 新闻/技术资料整理与信息嗅探综合消化：读取 [information-digest.md](references/information-digest.md)。单篇公众号、机构博客、项目发布文的原文整理或关键事实复核，另读 [publisher-article-summary.md](references/publisher-article-summary.md)。
 - 用户要求保存或更新知识库：读取 [knowledge-base.md](references/knowledge-base.md) 和 [仓库格式](references/repository-format.md)。
 - 用户要求提交、推送或同步 GitHub：读取 [Git 操作](references/git-workflow.md)。区分文件已保存、本地已提交和远端已同步。
 
