@@ -5,7 +5,10 @@
 > Time：  
 > Orgnization：  
 > Publisher：
-> 标签：#类型/模板 #类型/论文笔记
+> 论文链接：
+> 项目主页：
+> 开源代码：
+> 标签： #类型/模板 #类型/论文笔记
 
 <div style="background: rgba(255, 193, 7, 0.15); color: var(--text-normal); border-left: 4px solid #d9a300; padding: 1em; border-radius: 4px;">
 <p><strong>TL;DR｜核心贡献与创新</strong></p>
@@ -13,6 +16,7 @@
   <li>待补充。</li>
 </ol>
 </div>
+
 
 ![banner图]()
 
@@ -26,14 +30,15 @@
 </ol>
 </div>
 
-### 背景/动机
 
-### 模型/方法
+### 一、背景/动机
 
-### 数据/实机
+### 二、模型/方法
 
-### 训练策略
+### 三、数据/实机
 
-### 实验结果
+### 四、训练策略
 
-### 其他发现
+### 五、实验结果
+
+### 六、其他发现
