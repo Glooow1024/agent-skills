@@ -222,10 +222,12 @@ class Sync:
         self.state["observation"] = {"files": snapshot, "since": since}
         return max(0, quiet - (now - max(latest, since)))
 
-    def integrate_remote(self):
+    def fetch_remote(self):
         tracking = f"refs/remotes/{self.remote}/{self.branch}"
         self.g("fetch", "--no-tags", self.remote, f"refs/heads/{self.branch}:{tracking}")
-        remote_head = self.out("rev-parse", tracking)
+        return self.out("rev-parse", tracking)
+
+    def integrate_remote(self, remote_head):
         head = self.out("rev-parse", "HEAD")
         if self.g("merge-base", "--is-ancestor", remote_head, head, check=False).returncode == 0:
             return remote_head
@@ -305,6 +307,7 @@ class Sync:
         start = time.perf_counter()
         with process_lock(self.runtime / "worker.lock"):
             self.state = read_json(self.state_path)
+            committed_this_run = False
             previous_error = self.state.get("message") if self.state.get("status") == "attention" else None
             try:
                 if read_json(self.runtime / "pause.json").get("paused"):
@@ -334,17 +337,23 @@ class Sync:
                         self.schedule_retry(delay + 2, "sync")
                         self.record("waiting", "正在等待文件连续 15 分钟没有变化；已安排一次延后检查")
                         return self.state
-                remote_head = self.integrate_remote()
+                remote_head = self.fetch_remote()
                 if action == "sync":
                     entries = self.status()
+                    self.validate(entries)
+                    current = self.snapshot(entries)
+                    if current != snapshot:
+                        self.schedule_retry(self.cfg.get("quiet_minutes", 15) * 60, "sync")
+                        self.record("waiting", "检查期间内容发生变化，延后提交")
+                        return self.state
                     if entries:
-                        self.validate(entries)
-                        current = self.snapshot(entries)
-                        if current != snapshot:
-                            self.schedule_retry(self.cfg.get("quiet_minutes", 15) * 60, "sync")
-                            self.record("waiting", "检查期间内容发生变化，延后提交")
-                            return self.state
                         self.commit_snapshot(entries, snapshot)
+                        committed_this_run = True
+                    self.preflight()
+                    if self.status():
+                        raise Blocked("提交后又出现本地修改，本轮暂停合并与推送；已创建的本地提交会保留")
+                self.integrate_remote(remote_head)
+                if action == "sync":
                     # Explicit destination; never force, and push only this branch.
                     if self.out("rev-parse", "HEAD") != remote_head:
                         self.g("push", self.remote, f"HEAD:refs/heads/{self.branch}")
@@ -360,8 +369,11 @@ class Sync:
                 else:
                     self.record("ok", "同步完成，本地提交已推送")
             except Exception as error:
-                self.record("attention", str(error))
-                if self.cfg.get("notifications") and str(error) != previous_error:
+                message = str(error)
+                if committed_this_run:
+                    message += "\n本轮已创建的本地提交会保留，下次同步将重新检查远端。"
+                self.record("attention", message)
+                if self.cfg.get("notifications") and message != previous_error:
                     self.launch_ui()
             finally:
                 self.state["duration_seconds"] = round(time.perf_counter() - start, 3)

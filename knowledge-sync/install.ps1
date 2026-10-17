@@ -33,6 +33,9 @@ $config = @{
 if (Test-Path -LiteralPath $configPath) {
     $oldConfig = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
     if ($oldConfig.repository -ne $repoPath) { throw 'This task name already belongs to a different repository.' }
+    foreach ($key in @('quiet_minutes', 'max_changed_files', 'max_file_mb', 'notifications')) {
+        if ($null -ne $oldConfig.$key) { $config[$key] = $oldConfig.$key }
+    }
 }
 $config | ConvertTo-Json | Set-Content -LiteralPath $configPath -Encoding UTF8
 $userSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
@@ -57,14 +60,13 @@ function Daily([string]$Clock) {
     '<CalendarTrigger><StartBoundary>2026-01-01T' + $Clock + ':00+08:00</StartBoundary><Enabled>true</Enabled><ScheduleByDay><DaysInterval>1</DaysInterval></ScheduleByDay></CalendarTrigger>'
 }
 if ($Profile -eq 'primary') {
-    Register-Worker 'Pull' 'pull' (Daily '09:00')
-    Register-Worker 'Sync' 'sync' ((Daily '12:30') + (Daily '18:30'))
+    Register-Worker 'Sync' 'sync' ((Daily '09:00') + (Daily '12:30') + (Daily '18:30'))
 } else {
     # Login/unlock handles pulls; checking local changes every 30 minutes works
     # at arbitrary evening/weekend hours. Tasks run only while this user is logged on.
     Register-Worker 'Sync' 'sync' '<CalendarTrigger><Repetition><Interval>PT30M</Interval><Duration>P1D</Duration><StopAtDurationEnd>false</StopAtDurationEnd></Repetition><StartBoundary>2026-01-01T00:00:00+08:00</StartBoundary><Enabled>true</Enabled><ScheduleByDay><DaysInterval>1</DaysInterval></ScheduleByDay></CalendarTrigger>'
-    Unregister-ScheduledTask -TaskName ($prefix + '-Pull') -Confirm:$false -ErrorAction SilentlyContinue
 }
+Unregister-ScheduledTask -TaskName ($prefix + '-Pull') -Confirm:$false -ErrorAction SilentlyContinue
 Register-Worker 'Retry' 'retry' ''
 $session = '<LogonTrigger><Enabled>true</Enabled><UserId>' + $userSid + '</UserId><Delay>PT30S</Delay></LogonTrigger><SessionStateChangeTrigger><Enabled>true</Enabled><StateChange>SessionUnlock</StateChange><UserId>' + $userSid + '</UserId><Delay>PT10S</Delay></SessionStateChangeTrigger>'
 Register-Worker 'Session' 'session' $session

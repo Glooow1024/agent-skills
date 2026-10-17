@@ -109,6 +109,59 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(self.worker().run("sync")["status"], "attention")
         self.assertEqual(index, (self.local / ".git/index").read_bytes())
 
+    def test_sync_commits_local_changes_then_merges_remote_and_pushes(self):
+        (self.local / "note.md").write_text("# Local\n")
+        self.remote_change()
+        remote_head = git(self.remote, "rev-parse", "main")
+        result = self.worker().run("sync")
+        self.assertEqual(result["status"], "ok", result)
+        self.assertEqual((self.local / "note.md").read_text(), "# Local\n")
+        self.assertTrue((self.local / "remote.md").exists())
+        self.assertEqual(git(self.local, "status", "--porcelain"), "")
+        parents = git(self.local, "rev-list", "--parents", "-n", "1", "HEAD").split()
+        self.assertEqual(len(parents), 3)
+        self.assertEqual(parents[2], remote_head)
+        self.assertEqual(git(self.local, "show", "HEAD^1:note.md"), "# Local")
+        self.assertEqual(parents[0], git(self.remote, "rev-parse", "main"))
+
+    def test_sync_conflict_keeps_new_local_commit_without_push(self):
+        (self.local / "note.md").write_text("# Local\n")
+        self.remote_change("note.md", "# Remote\n")
+        before = git(self.local, "rev-parse", "HEAD")
+        remote_head = git(self.remote, "rev-parse", "main")
+        result = self.worker().run("sync")
+        self.assertEqual(result["status"], "attention", result)
+        self.assertIn("本轮已创建的本地提交会保留", result["message"])
+        self.assertNotEqual(before, git(self.local, "rev-parse", "HEAD"))
+        self.assertEqual(git(self.local, "show", "HEAD:note.md"), "# Local")
+        self.assertEqual(git(self.local, "status", "--porcelain"), "")
+        self.assertFalse((self.local / ".git/MERGE_HEAD").exists())
+        self.assertEqual(remote_head, git(self.remote, "rev-parse", "main"))
+
+    def test_changes_during_fetch_delay_commit_and_merge(self):
+        self.remote_change()
+        before = git(self.local, "rev-parse", "HEAD")
+        worker = self.worker()
+        original = worker.fetch_remote
+        def editing_fetch():
+            head = original()
+            (self.local / "note.md").write_text("# Still editing\n")
+            return head
+        with patch.object(worker, "fetch_remote", side_effect=editing_fetch):
+            result = worker.run("sync")
+        self.assertEqual(result["status"], "waiting", result)
+        self.assertEqual(before, git(self.local, "rev-parse", "HEAD"))
+        self.assertFalse((self.local / "remote.md").exists())
+
+    def test_fetch_failure_does_not_commit_or_merge(self):
+        (self.local / "note.md").write_text("# Local\n")
+        before = git(self.local, "rev-parse", "HEAD")
+        worker = self.worker()
+        with patch.object(worker, "fetch_remote", side_effect=Blocked("offline")):
+            self.assertEqual(worker.run("sync")["status"], "attention")
+        self.assertEqual(before, git(self.local, "rev-parse", "HEAD"))
+        self.assertEqual((self.local / "note.md").read_text(), "# Local\n")
+
     def test_recent_edits_schedule_one_retry_without_commit(self):
         self.config["quiet_minutes"] = 15
         (self.local / "note.md").write_text("# Editing\n")
