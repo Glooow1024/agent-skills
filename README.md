@@ -2,6 +2,10 @@
 
 用于集中维护可独立安装和持续迭代的 Agent Skills。
 
+## 配套工具
+
+- [Knowledge Sync](knowledge-sync/README.md)：Windows 本地知识库定时 Git 同步工具，支持主力电脑与晚间/周末电脑的独立调度、编辑稳定窗口及冲突提醒。
+
 ## 仓库结构
 
 ```text
