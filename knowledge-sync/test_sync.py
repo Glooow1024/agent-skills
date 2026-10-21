@@ -1,12 +1,13 @@
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
 from unittest.mock import patch
 
-from sync import Blocked, Sync, image_targets, read_json
+from sync import Blocked, Sync, image_targets, read_json, write_json
 
 
 def git(repo, *args):
@@ -170,6 +171,91 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(result["status"], "waiting")
         self.assertGreater(result["retry"]["at"], time.time() + 890)
         self.assertEqual(before, git(self.local, "rev-parse", "HEAD"))
+
+    def test_old_edits_commit_on_first_check_even_with_legacy_observation(self):
+        self.config["quiet_minutes"] = 15
+        note = self.local / "note.md"
+        note.write_text("# Ready\n")
+        old_time = time.time() - 20 * 60
+        os.utime(note, (old_time, old_time))
+        worker = self.worker()
+        write_json(worker.state_path, {"observation": {"files": {}, "since": time.time()}})
+        result = worker.run("sync")
+        self.assertEqual(result["status"], "ok", result)
+        self.assertNotIn("observation", result)
+        self.assertNotIn("retry", result)
+        self.assertEqual(git(self.remote, "show", "main:note.md"), "# Ready")
+
+    def test_retry_waits_only_remaining_time_and_uses_newest_file(self):
+        self.config["quiet_minutes"] = 15
+        now = time.time()
+        note = self.local / "note.md"
+        note.write_text("# Old\n")
+        os.utime(note, (now - 1200, now - 1200))
+        recent = self.local / "new.md"
+        recent.write_text("# New\n")
+        os.utime(recent, (now - 600, now - 600))
+        with patch("sync.time.time", return_value=now):
+            result = self.worker().run("sync")
+        self.assertEqual(result["status"], "waiting", result)
+        self.assertAlmostEqual(result["retry"]["at"], now + 302, places=2)
+        # Editing again moves the due time to 15 minutes after that edit.
+        recent.write_text("# Newer\n")
+        os.utime(recent, (now + 100, now + 100))
+        with patch("sync.time.time", return_value=now + 302):
+            result = self.worker().run("retry")
+        self.assertEqual(result["status"], "waiting", result)
+        self.assertAlmostEqual(result["retry"]["at"], now + 1002, places=2)
+        with patch("sync.time.time", return_value=now + 1002):
+            result = self.worker().run("retry")
+        self.assertEqual(result["status"], "ok", result)
+        self.assertEqual(git(self.remote, "show", "main:new.md"), "# Newer")
+
+    def test_manual_cli_sync_skips_wait_and_clears_pending_retry(self):
+        self.config["quiet_minutes"] = 15
+        (self.local / "note.md").write_text("# Saved just now\n")
+        self.assertEqual(self.worker().run("sync")["status"], "waiting")
+        config_path = self.root / "config.json"
+        write_json(config_path, self.config)
+        command = subprocess.run([sys.executable, str(Path(__file__).with_name("sync.py")),
+                                  "sync", "--now", "--config", str(config_path)],
+                                 capture_output=True)
+        self.assertEqual(command.returncode, 0, command.stderr)
+        result = read_json(self.worker().state_path)
+        self.assertEqual(result["status"], "ok", result)
+        self.assertNotIn("retry", result)
+        self.assertEqual(git(self.remote, "show", "main:note.md"), "# Saved just now")
+        before = git(self.local, "rev-parse", "HEAD")
+        self.worker().run("retry")  # A previously scheduled task becomes a no-op.
+        self.assertEqual(git(self.local, "rev-parse", "HEAD"), before)
+
+    def test_manual_sync_keeps_image_and_staging_checks(self):
+        self.config["quiet_minutes"] = 15
+        note = self.local / "note.md"
+        note.write_text("![](missing.png)\n")
+        self.assertEqual(self.worker().run("sync", immediate=True)["status"], "attention")
+        note.write_text("# Staged\n")
+        git(self.local, "add", "note.md")
+        index = (self.local / ".git/index").read_bytes()
+        self.assertEqual(self.worker().run("sync", immediate=True)["status"], "attention")
+        self.assertEqual(index, (self.local / ".git/index").read_bytes())
+        self.assertEqual(git(self.local, "rev-list", "--count", "HEAD"), "1")
+
+    def test_manual_sync_detects_edits_during_fetch_without_scheduling_wait(self):
+        self.config["quiet_minutes"] = 15
+        (self.local / "note.md").write_text("# Saved\n")
+        worker = self.worker()
+        original = worker.fetch_remote
+        def editing_fetch():
+            head = original()
+            (self.local / "note.md").write_text("# Still editing\n")
+            return head
+        with patch.object(worker, "fetch_remote", side_effect=editing_fetch):
+            result = worker.run("sync", immediate=True)
+        self.assertEqual(result["status"], "attention", result)
+        self.assertNotIn("retry", result)
+        self.assertEqual(git(self.local, "rev-list", "--count", "HEAD"), "1")
+        self.assertEqual((self.local / "note.md").read_text(), "# Still editing\n")
 
     def test_missing_image_prevents_commit(self):
         (self.local / "note.md").write_text("![](missing.png)\n")

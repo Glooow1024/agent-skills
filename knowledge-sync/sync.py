@@ -214,13 +214,9 @@ class Sync:
         now = time.time()
         quiet = self.cfg.get("quiet_minutes", 15) * 60
         latest = max((value[1] / 1e9 for value in snapshot.values() if value[1]), default=now)
-        old = self.state.get("observation", {})
-        # First observation always waits a full quiet window. This also covers
-        # copied/restored files whose preserved mtime is older than the edit.
-        changed = old.get("files") != snapshot
-        since = now if changed else old.get("since", now)
-        self.state["observation"] = {"files": snapshot, "since": since}
-        return max(0, quiet - (now - max(latest, since)))
+        # File timestamps determine how much of the quiet window remains,
+        # including on the first check. Old observation state is not a timer.
+        return max(0, quiet - (now - latest))
 
     def fetch_remote(self):
         tracking = f"refs/remotes/{self.remote}/{self.branch}"
@@ -303,10 +299,11 @@ class Sync:
         with log.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"time": stamp(), "status": status, "message": message}, ensure_ascii=False) + "\n")
 
-    def run(self, action):
+    def run(self, action, *, immediate=False):
         start = time.perf_counter()
         with process_lock(self.runtime / "worker.lock"):
             self.state = read_json(self.state_path)
+            self.state.pop("observation", None)
             committed_this_run = False
             previous_error = self.state.get("message") if self.state.get("status") == "attention" else None
             try:
@@ -332,10 +329,10 @@ class Sync:
                 if action == "sync" and entries:
                     self.validate(entries)
                     snapshot = self.snapshot(entries)
-                    delay = self.stable_delay(snapshot)
+                    delay = 0 if immediate else self.stable_delay(snapshot)
                     if delay:
                         self.schedule_retry(delay + 2, "sync")
-                        self.record("waiting", "正在等待文件连续 15 分钟没有变化；已安排一次延后检查")
+                        self.record("waiting", f"最新修改尚未满 {self.cfg.get('quiet_minutes', 15)} 分钟；已按剩余时间安排延后检查")
                         return self.state
                 remote_head = self.fetch_remote()
                 if action == "sync":
@@ -343,7 +340,9 @@ class Sync:
                     self.validate(entries)
                     current = self.snapshot(entries)
                     if current != snapshot:
-                        self.schedule_retry(self.cfg.get("quiet_minutes", 15) * 60, "sync")
+                        if immediate:
+                            raise Blocked("同步期间文件发生变化，本轮未提交。请保存并停止编辑后，再点击“重新同步”")
+                        self.schedule_retry(self.stable_delay(current) + 2, "sync")
                         self.record("waiting", "检查期间内容发生变化，延后提交")
                         return self.state
                     if entries:
@@ -394,7 +393,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["inspect", "pull", "sync", "retry", "session"])
     parser.add_argument("--config", required=True)
+    parser.add_argument("--now", action="store_true", help="手动同步：跳过编辑等待，保留其他检查")
     args = parser.parse_args()
+    if args.now and args.action != "sync":
+        parser.error("--now 仅用于 sync")
     worker = Sync(read_json(args.config), args.config)
     try:
         if args.action == "session":
@@ -403,7 +405,7 @@ def main():
             if worker.cfg.get("profile") == "secondary":
                 worker.run("pull")
         else:
-            result = worker.run(args.action)
+            result = worker.run(args.action, immediate=args.now)
             if sys.stdout:
                 print(json.dumps(result, ensure_ascii=False, indent=2))
             return 2 if result.get("status") == "attention" else 0

@@ -149,7 +149,7 @@ def main():
             if process is not None and process.poll() is None:
                 return
             try:
-                process = subprocess.Popen([cfg['pythonw'], str(HERE / 'sync.py'), 'sync', '--config', args.config],
+                process = subprocess.Popen([cfg['pythonw'], str(HERE / 'sync.py'), 'sync', '--now', '--config', args.config],
                                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                                            creationflags=0x08000000 if os.name == 'nt' else 0)
                 launch_error = None
@@ -189,7 +189,7 @@ def main():
             if paused:
                 body = '自动同步已暂停。恢复后等待下一次计划检查，或点击“重新同步”。\n\n最近记录：' + body
             elif running:
-                body = '正在检查，请稍候。若修改尚未稳定，会安排延后检查。'
+                body = '正在立即同步，已跳过编辑等待；仍会检查文件、暂存区和远端冲突。'
             text.configure(state='normal')
             text.delete('1.0', 'end')
             text.insert('1.0', body)
@@ -199,7 +199,7 @@ def main():
             due = state.get('retry', {}).get('at')
             retry_label.configure(text=('已安排检查 · ' + dt.datetime.fromtimestamp(due, BEIJING).strftime('%m/%d %H:%M')
                                         if due and not paused else '关闭窗口不会清除问题，登录或解锁时会再次提醒。' if status == 'attention'
-                                        else f"自动提交前，修改需连续 {cfg.get('quiet_minutes', 15)} 分钟保持稳定。"))
+                                        else f"自动同步按最后修改时间等待 {cfg.get('quiet_minutes', 15)} 分钟；重新同步会跳过等待。"))
             pause_button.configure(text='恢复自动同步' if paused else '暂停自动同步')
             sync_button.configure(text='同步中…' if running else '重新同步', state='disabled' if running or paused else 'normal')
 
