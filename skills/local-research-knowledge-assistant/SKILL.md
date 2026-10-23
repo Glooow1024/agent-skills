@@ -14,7 +14,7 @@ description: 检索筛选研究文献，按问题与技术路线撰写领域调�
 | 用户需要 | 读取与执行 |
 |---|---|
 | 检索一批文献，形成完整领域调研 | [领域调研流程](references/field-survey.md)，并读取其指定的报告写作约定 |
-| 修改现有调研报告 | 内容与语言修改读取[报告写作约定](references/survey-writing.md)；增删文献、图谱或交互时再读调研流程相应部分 |
+| 修改现有调研报告 | 内容与语言修改读取[报告写作约定](references/survey-writing.md)；重审主题、路线或归属时读取[问题与机制归类](references/problem-mechanism-taxonomy.md)；增删文献、图谱或交互时再读调研流程相应部分 |
 | 将论文总结或讨论整理成笔记 | [论文笔记流程](references/reading.md)及[笔记写作约定](references/note-writing.md)；需要交接材料时提供[交接提示词](assets/conversation-handoff-prompt.md) |
 | 聚合已有笔记、更新 Topic 与方法对比 | [Topic 综合](references/topic-synthesis.md) |
 | 推荐尚未了解的研究 | [文献推荐](references/recommendations.md) |
