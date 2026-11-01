@@ -27,6 +27,7 @@ agent-skills/
 | Skill | 用途 |
 |---|---|
 | [local-research-knowledge-assistant](skills/local-research-knowledge-assistant/SKILL.md) | 将论文总结与讨论整理为 Obsidian 知识资产，维护 Topic 综述、研究推荐与 Git 同步流程。 |
+| [training-workflow](skills/training-workflow/SKILL.md) | 管理训练协议、监控面板、周期巡检、异常恢复、启动与完成通知，以及任务完成后的自动停止。 |
 
 ## 使用方式
 

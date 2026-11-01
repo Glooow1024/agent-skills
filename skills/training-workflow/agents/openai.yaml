@@ -1,0 +1,4 @@
+interface:
+  display_name: "模型训练工作流"
+  short_description: "训练复现与改进、监控面板、异常恢复、消息通知和自动收尾的默认流程"
+  default_prompt: "使用 $training-workflow 准备并执行本次训练，建立监控、恢复、通知及自动停止机制。"
