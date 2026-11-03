@@ -1,24 +1,67 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "run_id": "{{RUN_ID}}",
   "prepared_at": "{{CREATED_AT}}",
   "ready_for_training": false,
   "purpose": null,
-  "comparison": {"baseline": null, "changed_variables": [], "inherited_history": null, "paper_code_deviations": []},
-  "locations": {"local_workspace": null, "remote_host": null, "remote_workspace": null, "artifact_root": null},
-  "provenance": {"code_commit": null, "patch_hash": null, "environment_lock": null, "initial_weights": null, "data_manifest": null, "split_hashes": {}},
-  "resources": {"training_gpus": [], "evaluation_gpus": [], "gpu_lease": null, "world_size": null, "per_device_batch": null, "gradient_accumulation": null, "effective_global_batch": null},
+  "comparison": {
+    "baseline": null,
+    "changed_variables": [],
+    "inherited_history": null,
+    "paper_code_deviations": []
+  },
+  "locations": {
+    "local_workspace": null,
+    "remote_host": null,
+    "remote_workspace": null,
+    "artifact_root": null
+  },
+  "provenance": {
+    "code_commit": null,
+    "patch_hash": null,
+    "environment_lock": null,
+    "initial_weights": null,
+    "data_manifest": null,
+    "split_hashes": {}
+  },
+  "resources": {
+    "training_gpus": [],
+    "evaluation_gpus": [],
+    "gpu_lease": null,
+    "world_size": null,
+    "per_device_batch": null,
+    "gradient_accumulation": null,
+    "effective_global_batch": null
+  },
   "stages": [],
   "losses": [],
   "parameter_groups": [],
-  "sampling": {"policy": null, "seed_policy": null, "epoch_coverage_evidence": null, "resume_sequence_evidence": null},
-  "checkpoint": {"interval_updates": null, "full_state_fields": [], "retention_policy": null, "evaluation_pinning": null},
-  "evaluation": {"fixed_probe_manifest": null, "final_scope": null, "metrics": [], "aggregation": null, "expected_artifacts": [], "pending_queue": null},
+  "sampling": {
+    "policy": null,
+    "seed_policy": null,
+    "epoch_coverage_evidence": null,
+    "resume_sequence_evidence": null
+  },
+  "checkpoint": {
+    "interval_updates": null,
+    "full_state_fields": [],
+    "retention_policy": null,
+    "evaluation_pinning": null
+  },
+  "evaluation": {
+    "fixed_probe_manifest": null,
+    "final_scope": null,
+    "metrics": [],
+    "aggregation": null,
+    "expected_artifacts": [],
+    "pending_queue": null
+  },
   "monitoring": {
-    "run_ids": ["{{RUN_ID}}"],
+    "run_ids": [
+      "{{RUN_ID}}"
+    ],
     "thread_id": "{{THREAD_ID}}",
     "script_interval_seconds": 300,
-    "quality_review_interval_seconds": 3600,
     "normal_script_model_calls": 0,
     "stale_progress_investigate_seconds": 900,
     "timeout_calibration": null,
@@ -28,10 +71,73 @@
     "probe_adapter": null,
     "dashboard_url": null,
     "dashboard_start_command": null,
-    "state_root": null
+    "state_root": null,
+    "model_trigger_mode": "event_driven",
+    "quality_evidence_check_interval_seconds": 3600,
+    "quality_review_interval_seconds": null,
+    "model_periodic_fallback_user_approved": false,
+    "wake_reasons": [
+      "new_anomaly",
+      "new_quality_evidence",
+      "needs_user",
+      "finalize"
+    ],
+    "context_summary_path": null,
+    "context_summary_target_bytes": 2048,
+    "context_freshness_seconds": null,
+    "detail_paths": [],
+    "last_reviewed_evaluation": null,
+    "pending_dispatch_path": null,
+    "independent_watchdog": null,
+    "thread_verified": false,
+    "previous_thread_id": null,
+    "thread_handoff_receipt": null
   },
-  "notification": {"channel": "feishu", "credential_reference": null, "target_verified": false, "events": ["new_anomaly", "verified_recovery", "needs_user", "all_complete"], "normal_updates": false, "deduplicate": true, "max_send_attempts": 5, "receipt_evidence": null},
-  "recovery": {"max_evidence_based_attempts_per_incident": 2, "exclusive_lease": null, "preserve_full_state": true, "automatic_recipe_changes": false, "verification_adapter": null},
-  "completion": {"adapter": null, "all_run_stages_required": true, "final_evaluation_required": true, "queue_drained_required": true, "stable_observations": 2, "notification_receipt_required": true, "script_disable_and_verify": null, "quality_pause_and_verify": null, "stop_receipt_path": null},
-  "acceptance": {"real_training_smoke": null, "full_resume": null, "dashboard": null, "normal_zero_model_calls": null, "incident_dedup": null, "notification": null, "shutdown_negative_cases": null, "shutdown_positive_case": null}
+  "notification": {
+    "channel": "feishu",
+    "credential_reference": null,
+    "target_verified": false,
+    "events": [
+      "new_anomaly",
+      "verified_recovery",
+      "needs_user",
+      "all_complete"
+    ],
+    "normal_updates": false,
+    "deduplicate": true,
+    "max_send_attempts": 5,
+    "receipt_evidence": null
+  },
+  "recovery": {
+    "max_evidence_based_attempts_per_incident": 2,
+    "exclusive_lease": null,
+    "preserve_full_state": true,
+    "automatic_recipe_changes": false,
+    "verification_adapter": null
+  },
+  "completion": {
+    "adapter": null,
+    "all_run_stages_required": true,
+    "final_evaluation_required": true,
+    "queue_drained_required": true,
+    "stable_observations": 2,
+    "notification_receipt_required": true,
+    "script_disable_and_verify": null,
+    "quality_pause_and_verify": null,
+    "stop_receipt_path": null
+  },
+  "acceptance": {
+    "real_training_smoke": null,
+    "full_resume": null,
+    "dashboard": null,
+    "normal_zero_model_calls": null,
+    "incident_dedup": null,
+    "notification": null,
+    "shutdown_negative_cases": null,
+    "shutdown_positive_case": null,
+    "new_quality_evidence_wakeup": null,
+    "progressive_context": null,
+    "stale_summary": null,
+    "thread_handoff": null
+  }
 }
