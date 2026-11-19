@@ -1,0 +1,7 @@
+{
+  "default": "默认",
+  "tasks": {
+    "默认": {"thread_id": "YOUR_VERIFIED_CODEX_THREAD"},
+    "另一个任务": {"thread_id": "ANOTHER_VERIFIED_CODEX_THREAD"}
+  }
+}

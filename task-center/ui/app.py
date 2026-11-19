@@ -1,9 +1,10 @@
 """Native desktop hub: shared navigation, asynchronous status, existing service adapters."""
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import threading,queue,datetime
 from core.backend import *
 from adapters import knowledge
+from adapters import bindings
 BG='#F3F5F7';WHITE='#FFFFFF';INK='#18283D';MUTED='#596C82';NAV='#142235';LINE='#E3E9EF';TEAL='#087F75';FONT='Microsoft YaHei UI'
 def text(parent,value,size=11,color=INK,bold=False,**kw):
     return tk.Label(parent,text=value,font=(FONT,size,'bold' if bold else 'normal'),bg=parent.cget('bg'),fg=color,anchor='w',**kw)
@@ -210,7 +211,60 @@ class App:
         b=button(row,'停止服务',lambda:self.action(lambda:stop(s)));b.pack(side='left',padx=12);b.config(state='disabled' if self.busy or not d.get('pids') else 'normal')
         self.updates.append(lambda b=b:b.config(state='disabled' if self.busy or not self.cache.get(s['id'],{}).get('pids') else 'normal'))
         button(row,'打开日志',lambda:os.startfile(str(BASE/s['folder']))).pack(side='right')
+        if s.get('kind')=='message-bridge':
+            button(row,'管理任务绑定',lambda:self.binding_editor(s)).pack(side='left')
         text(self.main,'停止只影响本地服务，不会停止远端训练。\n桥接手动停止后，本次登录期间保持停止；下次登录恢复。' if s.get('kind')=='message-bridge' else '停止只影响本地监测，不会停止远端训练。',10,MUTED,justify='left').pack(anchor='w')
+    def binding_editor(self,service):
+        try:path,data,version=bindings.load(service)
+        except Exception as exc:
+            messagebox.showerror('无法读取绑定',str(exc),parent=self.root);return
+        window=tk.Toplevel(self.root);window.title('控制群 · 任务绑定');window.geometry('800x540');window.configure(bg=BG)
+        frame=tk.Frame(window,bg=BG,padx=20,pady=16);frame.pack(fill='both',expand=True)
+        text(frame,'任务别名 → Codex 聊天',17,bold=True).pack(anchor='w')
+        text(frame,'保存后新消息立即生效；已入队消息保持原目标。聊天 ID 请从对应聊天核实。',10,MUTED).pack(anchor='w',pady=8)
+        tree=ttk.Treeview(frame,columns=('alias','thread','default'),show='headings',height=7)
+        for key,label,width in [('alias','任务别名',150),('thread','聊天 ID',440),('default','默认',60)]:
+            tree.heading(key,text=label);tree.column(key,width=width)
+        tree.pack(fill='both',expand=True)
+        fields={}
+        for key,label in [('alias','别名'),('thread_id','聊天 ID')]:
+            row=tk.Frame(frame,bg=BG);row.pack(fill='x',pady=5)
+            text(row,label,10).pack(side='left');fields[key]=tk.StringVar()
+            ttk.Entry(row,textvariable=fields[key]).pack(side='right',fill='x',expand=True,padx=(15,0))
+        hint=tk.StringVar(value='');text_label=ttk.Label(frame,textvariable=hint);text_label.pack(anchor='w',pady=5)
+        def refresh():
+            tree.delete(*tree.get_children())
+            for alias,target in data['tasks'].items():tree.insert('', 'end',iid=alias,values=(alias,target['thread_id'],'是' if alias==data['default'] else ''))
+        def select(event=None):
+            selected=tree.selection()
+            if selected:
+                alias=selected[0];fields['alias'].set(alias);fields['thread_id'].set(data['tasks'][alias]['thread_id'])
+        tree.bind('<<TreeviewSelect>>',select)
+        def edit():
+            alias=fields['alias'].get().strip();target=fields['thread_id'].get().strip()
+            candidate=json.loads(json.dumps(data));candidate['tasks'][alias]=dict(candidate['tasks'].get(alias,{}),thread_id=target)
+            try:bindings.routing.validate(candidate)
+            except ValueError as exc:hint.set(str(exc));return
+            data.update(candidate);refresh();hint.set('已更新草稿；点击保存生效。修改别名请新增后删除旧项。')
+        def remove():
+            selected=tree.selection()
+            if not selected:return
+            alias=selected[0]
+            if alias==data['default']:hint.set('请先选择另一个默认任务，再删除此项。');return
+            del data['tasks'][alias];refresh();hint.set('已从草稿移除；点击保存生效。')
+        def default():
+            selected=tree.selection()
+            if selected:data['default']=selected[0];refresh()
+        def persist():
+            nonlocal version
+            try:version=bindings.store(path,data,version)
+            except Exception as exc:hint.set(str(exc));return
+            hint.set('已保存，新消息立即生效；原绑定备份保存在本机。')
+        controls=tk.Frame(frame,bg=BG);controls.pack(fill='x',pady=10)
+        for label,action in [('新增 / 更新草稿',edit),('移除所选',remove),('设为默认',default),('保存绑定',persist)]:
+            button(controls,label,action,label=='保存绑定').pack(side='left',padx=(0,8))
+        refresh()
+        return window
     def knowledge_page(self):
         k=self.k;self.heading('知识库同步','Knowledge Sync  /  沿用原有同步规则与计划任务')
         c=self.card();c.pack(fill='x',pady=(0,16));text(c,Path(k.get('repository','knowledge_base')).name,13,bold=True).pack(anchor='w')
