@@ -218,23 +218,65 @@ class App:
         try:path,data,version=bindings.load(service)
         except Exception as exc:
             messagebox.showerror('无法读取绑定',str(exc),parent=self.root);return
-        window=tk.Toplevel(self.root);window.title('控制群 · 任务绑定');window.geometry('800x540');window.configure(bg=BG)
-        frame=tk.Frame(window,bg=BG,padx=20,pady=16);frame.pack(fill='both',expand=True)
-        text(frame,'任务别名 → Codex 聊天',17,bold=True).pack(anchor='w')
-        text(frame,'保存后新消息立即生效；已入队消息保持原目标。聊天 ID 请从对应聊天核实。',10,MUTED).pack(anchor='w',pady=8)
-        tree=ttk.Treeview(frame,columns=('alias','thread','default'),show='headings',height=7)
-        for key,label,width in [('alias','任务别名',150),('thread','聊天 ID',440),('default','默认',60)]:
-            tree.heading(key,text=label);tree.column(key,width=width)
-        tree.pack(fill='both',expand=True)
+        window=tk.Toplevel(self.root);window.title('Orbit · 任务绑定');window.configure(bg=BG)
+        window.iconbitmap(str(ROOT/'assets/orbit.ico'))
+        width=round(820*self.scale);height=round(600*self.scale)
+        window.geometry(f'{width}x{height}');window.minsize(width, height)
+        window.update_idletasks()
+        try:
+            import ctypes
+            hwnd=ctypes.windll.user32.GetParent(window.winfo_id())
+            for kind,icon in zip((1,0),self.native_icons):ctypes.windll.user32.SendMessageW(hwnd,0x80,kind,icon)
+        except Exception:pass
+        style=ttk.Style(window)
+        style.layout('Bindings.Treeview',[('Treeview.treearea',{'sticky':'nswe'})])
+        style.configure('Bindings.Treeview',font=(FONT,10),rowheight=round(38*self.scale),
+                        background=WHITE,fieldbackground=WHITE,foreground=INK,borderwidth=0)
+        style.configure('Bindings.Treeview.Heading',font=(FONT,9),background='#EDF2F5',foreground=MUTED,
+                        relief='flat',padding=(12,10))
+        style.map('Bindings.Treeview',background=[('selected','#DDF2EE')],foreground=[('selected','#07685F')])
+        style.configure('Bindings.TEntry',font=(FONT,10),padding=(10,9),bordercolor=LINE,lightcolor=LINE,darkcolor=LINE)
+        frame=tk.Frame(window,bg=BG,padx=round(26*self.scale),pady=round(20*self.scale));frame.pack(fill='both',expand=True)
+        header=tk.Frame(frame,bg=BG);header.pack(fill='x',pady=(0,18))
+        text(header,'控制群 / 消息路由',9,TEAL,True).pack(anchor='w')
+        text(header,'管理任务绑定',19,bold=True).pack(anchor='w',pady=(5,6))
+        text(header,'为每个聊天取一个好记的名字，在飞书中用 /发 或 /切换 选择任务。',10,MUTED).pack(anchor='w')
+        list_card=tk.Frame(frame,bg=WHITE,padx=16,pady=14,highlightbackground=LINE,highlightthickness=1)
+        list_card.pack(fill='both',expand=True)
+        list_title=tk.Frame(list_card,bg=WHITE);list_title.pack(fill='x',pady=(0,12))
+        text(list_title,'已绑定任务',11,bold=True).pack(side='left')
+        text(list_title,'选择一行，在下方编辑',9,MUTED).pack(side='right')
+        list_host=tk.Frame(list_card,bg=WHITE);list_host.pack(fill='both',expand=True)
+        tree=ttk.Treeview(list_host,columns=('alias','thread','default'),show='headings',height=3,style='Bindings.Treeview',selectmode='browse')
+        for key,label,colwidth in [('alias','任务别名',170),('thread','Codex 聊天 ID',440),('default','默认任务',90)]:
+            tree.heading(key,text=label,anchor='w');tree.column(key,width=round(colwidth*self.scale),minwidth=round(70*self.scale),anchor='w')
+        tree.pack(side='left',fill='both',expand=True)
+        scroll=ttk.Scrollbar(list_host,orient='vertical',command=tree.yview,style='Orbit.Vertical.TScrollbar')
+        def scroll_state(first,last):
+            scroll.set(first,last)
+            if float(first)>0 or float(last)<1:scroll.pack(side='right',fill='y')
+            else:scroll.pack_forget()
+        tree.configure(yscrollcommand=scroll_state)
+        list_actions=tk.Frame(list_card,bg=WHITE);list_actions.pack(fill='x',pady=(12,0))
+        form=tk.Frame(frame,bg=WHITE,padx=16,pady=14,highlightbackground=LINE,highlightthickness=1)
+        form.pack(fill='x',pady=(14,0))
+        text(form,'编辑绑定',11,bold=True).pack(anchor='w',pady=(0,10))
+        form_fields=tk.Frame(form,bg=WHITE);form_fields.pack(fill='x')
+        form_fields.columnconfigure(0,weight=1);form_fields.columnconfigure(1,weight=3)
         fields={}
-        for key,label in [('alias','别名'),('thread_id','聊天 ID')]:
-            row=tk.Frame(frame,bg=BG);row.pack(fill='x',pady=5)
-            text(row,label,10).pack(side='left');fields[key]=tk.StringVar()
-            ttk.Entry(row,textvariable=fields[key]).pack(side='right',fill='x',expand=True,padx=(15,0))
-        hint=tk.StringVar(value='');text_label=ttk.Label(frame,textvariable=hint);text_label.pack(anchor='w',pady=5)
+        for column,(key,label) in enumerate([('alias','任务别名'),('thread_id','Codex 聊天 ID')]):
+            row=tk.Frame(form_fields,bg=WHITE);row.grid(row=0,column=column,sticky='ew',padx=(0,14) if column==0 else 0)
+            text(row,label,9,MUTED).pack(anchor='w',pady=(0,5));fields[key]=tk.StringVar()
+            ttk.Entry(row,textvariable=fields[key],style='Bindings.TEntry',width=18 if column==0 else 42).pack(fill='x')
+        form_actions=tk.Frame(form,bg=WHITE);form_actions.pack(fill='x',pady=(12,0))
+        text(form_actions,'聊天 ID 请从对应聊天核实。',9,MUTED).pack(side='left')
+        hint=tk.StringVar(value='保存后对新消息生效，已入队消息保持原目标。')
+        footer=tk.Frame(frame,bg=BG);footer.pack(fill='x',pady=(16,0))
+        text_label=tk.Label(footer,textvariable=hint,font=(FONT,9),bg=BG,fg=MUTED,anchor='w',justify='left',wraplength=round(540*self.scale))
+        text_label.pack(side='left',fill='x',expand=True)
         def refresh():
             tree.delete(*tree.get_children())
-            for alias,target in data['tasks'].items():tree.insert('', 'end',iid=alias,values=(alias,target['thread_id'],'是' if alias==data['default'] else ''))
+            for alias,target in data['tasks'].items():tree.insert('', 'end',iid=alias,values=(alias,target['thread_id'],'● 默认' if alias==data['default'] else '—'))
         def select(event=None):
             selected=tree.selection()
             if selected:
@@ -260,10 +302,13 @@ class App:
             try:version=bindings.store(path,data,version)
             except Exception as exc:hint.set(str(exc));return
             hint.set('已保存，新消息立即生效；原绑定备份保存在本机。')
-        controls=tk.Frame(frame,bg=BG);controls.pack(fill='x',pady=10)
-        for label,action in [('新增 / 更新草稿',edit),('移除所选',remove),('设为默认',default),('保存绑定',persist)]:
-            button(controls,label,action,label=='保存绑定').pack(side='left',padx=(0,8))
+        button(list_actions,'设为默认',default).pack(side='left')
+        button(list_actions,'移除所选',remove).pack(side='left',padx=8)
+        button(form_actions,'新增 / 更新草稿',edit).pack(side='right')
+        button(footer,'保存绑定',persist,True).pack(side='right',padx=(16,0))
         refresh()
+        if data['tasks']:
+            tree.selection_set(data['default']);select()
         return window
     def knowledge_page(self):
         k=self.k;self.heading('知识库同步','Knowledge Sync  /  沿用原有同步规则与计划任务')

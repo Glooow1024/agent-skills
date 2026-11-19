@@ -6,9 +6,20 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 from routing import Router
-from service import Bridge, save
+from service import Bridge, save, forwarded_message
 
 class RoutingTests(unittest.TestCase):
+    def test_compact_message_preserves_instruction_and_receipt_only(self):
+        job={'token':'request-token','route':{'alias':'单视角','body':'查看训练进度\n不要修改训练'},
+             'event':{'sender_id':'private-owner','chat_id':'private-group','timestamp':'private-time'}}
+        ack=Path('C:/local/acks/request-token.json')
+        message=forwarded_message(job,ack)
+        self.assertIn(job['route']['body'],message)
+        self.assertIn(str(ack),message)
+        self.assertIn('needs_user',message)
+        self.assertIn('request-token',message)
+        for value in job['event'].values():self.assertNotIn(value,message)
+        self.assertLess(len(message),400)
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name)
         self.c=dict(enabled=True,owner_id='owner',bot_id='bot',chat_id='group',thread_id='legacy',profile='test',runtime=str(self.root))
