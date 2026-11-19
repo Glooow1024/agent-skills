@@ -32,7 +32,7 @@
 支持 Windows 10/11 的交互式用户会话。把整个仓库放在固定的可写目录；已有 Git 时可克隆，没有 Git 时可从仓库页面下载 ZIP 后解压。以下命令在仓库根目录执行：
 
 ```powershell
-# 默认安装，也可以直接双击根目录 install.cmd
+# 默认安装，也可以直接双击 task-center 目录内的 install.cmd
 .\task-center\install.ps1
 
 # 可选：同时准备飞书与知识库所需的外部工具

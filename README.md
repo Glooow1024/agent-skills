@@ -13,8 +13,8 @@
 ```text
 agent-skills/
 ├─ README.md
-├─ install.cmd             # Windows 双击安装 Orbit
 ├─ task-center/            # 桌面入口、安装器与服务管理
+│  └─ install.cmd          # Windows 双击安装 Orbit
 ├─ services/               # 消息桥接、知识库同步、训练监测
 ├─ examples/               # 不含身份与凭证的配置模板
 └─ skills/
@@ -33,7 +33,7 @@ agent-skills/
 ## 新电脑安装 Orbit（Windows）
 
 1. 把仓库克隆或下载 ZIP 后解压到固定目录，例如 `D:\Tools\agent-skills`。不要在 ZIP 内直接运行，也不要安装后随意移动目录。
-2. 双击根目录 **`install.cmd`**。安装器自动检查 Python 3.11+（含 Tk），缺少时通过 winget 安装 Python 3.13；创建用户目录下的独立 Python 环境并安装依赖，初始化本机配置，创建桌面入口和登录自启项，最后打开任务中心。首次下载需联网；缺少 winget 时按报错安装微软 App Installer 或手动安装 Python 后重试。
+2. 双击 **[task-center/install.cmd](task-center/install.cmd)**。安装器自动检查 Python 3.11+（含 Tk），缺少时通过 winget 安装 Python 3.13；创建用户目录下的独立 Python 环境并安装依赖，初始化本机配置，创建桌面入口和登录自启项，最后打开任务中心。首次下载需联网；缺少 winget 时按报错安装微软 App Installer 或手动安装 Python 后重试。
 3. 新电脑的服务列表初始为空。按[完整安装和配置说明](task-center/README.md#新电脑安装与配置)分别配置消息桥接、知识库或训练监测。账号授权、Git 身份、项目路径与聊天绑定不会从代码仓库自动带过来。
 
 需要同时准备飞书和知识库依赖时，在仓库根目录运行：
