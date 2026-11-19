@@ -19,6 +19,8 @@
 
 ## 安装
 
+正式代码目录为`F:/Development/research/agent-skills/services/knowledge-sync`。统一入口为`task-center/orbit.py gui`；安装器将实例登记到`%USERPROFILE%/.orbit/services.json`（本机`C:/Users/Lenovo/.orbit/services.json`）。现有知识库私密配置仍为`%USERPROFILE%/.knowledge-sync/knowledge-base/config.json`，它和Orbit注册表用途不同，不要因整理目录而移动或重建同步状态。
+
 需要 Windows、Python 3.11+（包含 Tkinter 与 pythonw.exe）、Git，以及已能在该用户环境下无交互访问目标远端的 SSH 配置。
 
 在 PowerShell 中进入本目录运行（路径换成这台电脑的真实路径）：
@@ -27,7 +29,7 @@
 .\install.ps1 -Repository 'E:\knowledge_base' -Profile primary
 ```
 
-安装会创建 `KnowledgeSync-knowledge-base-*` 任务和桌面上的 `Knowledge Sync` 快捷方式。机器路径、配置、暂停状态、日志和待处理问题保存在 `%USERPROFILE%\.knowledge-sync\knowledge-base\`，不会写入工具仓库或知识库。使用普通用户目录避免某些打包应用将 AppData 写入虚拟目录，导致任务计划程序看不到配置。可用 `-RuntimeRoot` 指定其他真实本地目录。安装不会自动修改 Git 身份、SSH 密钥、执行策略或 Windows 权限。
+安装会创建 `KnowledgeSync-<Name>-*` 任务并登记到Orbit统一入口，不再创建独立桌面快捷方式。通过-Name和-Repository可配置多个独立实例。机器路径、配置、暂停状态、日志和待处理问题默认保存在 `%USERPROFILE%\.knowledge-sync\<Name>\`（本机Name为knowledge-base），不会写入工具仓库或知识库。使用普通用户目录避免某些打包应用将 AppData 写入虚拟目录，导致任务计划程序看不到配置。可用 `-RuntimeRoot` 指定其他真实本地目录。安装不会自动修改 Git 身份、SSH 密钥、执行策略或 Windows 权限。
 
 如果系统策略禁止脚本，或没有注册任务的权限，安装会报告错误；请按你的电脑管理规则处理，不需要关闭系统保护。
 
@@ -62,7 +64,7 @@
 
 异常时打开一个独立状态窗口，窗口在任务栏保留。关闭窗口不会清除问题；下次登录或解锁后仍可看到。相同问题不会在每轮检查反复创建窗口。没有问题时不弹窗。
 
-桌面快捷方式随时查看状态、重新同步、暂停或恢复。暂停不会清理改动；恢复后等待下一次计划检查或手动点击“重新同步”。运行日志达到约 1 MB 后轮换一次。
+通过Orbit桌面入口的“知识库同步”页面查看状态、立即同步、暂停或恢复。暂停不会清理改动；恢复后等待下一次计划检查或手动点击“重新同步”。运行日志达到约 1 MB 后轮换一次。
 
 状态窗口统一使用雅黑，按屏幕 DPI 绘制文字和布局，避免系统将整个窗口作为位图放大。`display.json` 记录当前窗口的 DPI 启用结果、像素密度与 Tk 版本，便于排查文字模糊；它和运行日志一样保存在本机配置目录。
 

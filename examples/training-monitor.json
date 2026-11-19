@@ -1,0 +1,13 @@
+{
+  "id": "example-project-run-001",
+  "adapter": "E:/Projects/Example/monitor_adapter.py",
+  "cwd": "E:/Projects/Example",
+  "runtime": "E:/Projects/Example/runs/run-001/monitor",
+  "interval": 300,
+  "max_seconds": 604800,
+  "max_restarts": 3,
+  "restart_delay": 60,
+  "stop_markers": ["E:/Projects/Example/runs/run-001/monitor/stopped.json", "E:/Projects/Example/runs/run-001/monitor/expired.json"],
+  "notification_config": "C:/Users/YOU/.orbit/instances/example-bridge.json",
+  "thread_id": "VERIFIED_CURRENT_EXPERIMENT_CHAT"
+}

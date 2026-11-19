@@ -1,0 +1,21 @@
+{
+  "id": "example-bridge",
+  "name": "示例项目消息桥接",
+  "kind": "message-bridge",
+  "group": "消息桥接",
+  "project": "Example",
+  "description": "本人在授权群内@机器人进入指定聊天。",
+  "entry": "F:/Development/research/agent-skills/services/message-bridge/service.py",
+  "scripts": ["F:/Development/research/agent-skills/services/message-bridge/service.py"],
+  "config": "C:/Users/YOU/.orbit/instances/example-bridge.json",
+  "match_config": "C:/Users/YOU/.orbit/instances/example-bridge.json",
+  "args": ["--config", "C:/Users/YOU/.orbit/instances/example-bridge.json"],
+  "cwd": "F:/Development/research/agent-skills/services/message-bridge",
+  "health": "C:/Users/YOU/.orbit/runtime/example-bridge/health.json",
+  "listener": "C:/Users/YOU/.orbit/runtime/example-bridge/listener.json",
+  "folder": "C:/Users/YOU/.orbit/runtime/example-bridge",
+  "stop_request": "C:/Users/YOU/.orbit/runtime/example-bridge/stop.request",
+  "stale": 90,
+  "autostart": false,
+  "bootstrap_codex": false
+}

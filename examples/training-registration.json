@@ -1,0 +1,19 @@
+{
+  "id": "example-project-run-001",
+  "name": "示例实验巡检",
+  "kind": "training-monitor",
+  "group": "训练监测",
+  "project": "Example",
+  "description": "按项目协议检查训练与最终评估，完成后退出。",
+  "entry": "F:/Development/research/agent-skills/services/training-monitor/guard.py",
+  "scripts": ["F:/Development/research/agent-skills/services/training-monitor/guard.py", "F:/Development/research/agent-skills/services/training-monitor/runner.py"],
+  "config": "C:/Users/YOU/.orbit/instances/example-project-run-001.json",
+  "match_config": "C:/Users/YOU/.orbit/instances/example-project-run-001.json",
+  "args": ["--config", "C:/Users/YOU/.orbit/instances/example-project-run-001.json"],
+  "cwd": "E:/Projects/Example",
+  "health": "E:/Projects/Example/runs/run-001/monitor/state.json",
+  "terminal": "E:/Projects/Example/runs/run-001/monitor/stopped.json",
+  "folder": "E:/Projects/Example/runs/run-001/monitor",
+  "stale": 660,
+  "autostart": false
+}

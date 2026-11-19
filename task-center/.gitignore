@@ -1,0 +1,7 @@
+__pycache__/
+runtime/
+legacy_shortcuts/
+services.json
+*.log
+migration-backup/
+before_resources.json

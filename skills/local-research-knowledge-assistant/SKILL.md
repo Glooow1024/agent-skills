@@ -21,6 +21,7 @@ description: 检索筛选研究文献，按问题与技术路线撰写领域调�
 | 推荐尚未了解的研究 | [文献推荐](references/recommendations.md) |
 | 整理技术资讯，或读取公众号、机构文章 | [资讯整理](references/information-digest.md)；原文提取、摘要或核查另读[文章处理](references/publisher-article-summary.md) |
 | 保存或更新知识库 | 在内容流程之外读取[本地归档](references/knowledge-base.md)和[仓库格式](references/repository-format.md) |
+| 维护本机自动同步、计划任务或桌面接入 | [Git 操作中的自动同步接入](references/git-workflow.md#本机自动同步接入)，核对现有实例，不另建同步服务 |
 | 提交、推送或同步 Git | [Git 操作](references/git-workflow.md)；沿用本会话已经授予的操作范围 |
 
 涉及用户模板、知识库位置或长期偏好时，读取[用户配置](references/user-context.md)并核实实际资源。单纯问答不必补齐存储配置。

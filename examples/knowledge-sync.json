@@ -1,0 +1,17 @@
+{
+  "repository": "E:/Knowledge/Example",
+  "runtime": "C:/Users/YOU/.knowledge-sync/example",
+  "remote": "origin",
+  "branch": "main",
+  "remote_url": "YOUR_EXISTING_REMOTE_URL",
+  "git": "git.exe",
+  "python": "C:/Python/python.exe",
+  "pythonw": "C:/Python/pythonw.exe",
+  "profile": "primary",
+  "quiet_minutes": 15,
+  "max_changed_files": 40,
+  "max_file_mb": 25,
+  "scheduler_enabled": false,
+  "notifications": false,
+  "task_prefix": "KnowledgeSync-example"
+}

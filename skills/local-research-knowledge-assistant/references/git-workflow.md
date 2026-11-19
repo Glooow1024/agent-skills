@@ -25,3 +25,9 @@
 ## 校验范围
 
 提交前检查 frontmatter 能解析、ID 不重复、Topic 引用与相对链接能定位、图片存在且不是未下载的 LFS 指针。只检查本次影响范围及关联对象，不因笔记更新而运行无关的软件测试。尚无自动校验器时可直接检查，不声称已有校验脚本。
+
+## 本机自动同步接入
+
+维护自动同步服务时先读[Orbit README](F:/Development/research/agent-skills/task-center/README.md)及同目录AGENTS.md。正式实现为`F:/Development/research/agent-skills/services/knowledge-sync`，统一桌面入口为`F:/Development/research/agent-skills/task-center/orbit.py gui`。Orbit注册表唯一位置是`%USERPROFILE%/.orbit/services.json`（本机`C:/Users/Lenovo/.orbit/services.json`），通过`orbit.py register`先--check再登记；已有ID两步都加--replace。
+
+本机已有knowledge-base实例：同步配置为`C:/Users/Lenovo/.knowledge-sync/knowledge-base/config.json`，仓库为`E:/knowledge_base`，实际仓库、分支和远端以配置及Git读取结果为准。优先维护现有实例，保持原计划、暂停状态和日志；不要重建独立永久桌面入口或复制一份同步脚本。普通写笔记或手动Git操作不触发安装、改计划或新增实例。

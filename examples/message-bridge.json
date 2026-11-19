@@ -1,0 +1,10 @@
+{
+  "enabled": false,
+  "profile": "YOUR_LARK_PROFILE",
+  "owner_id": "YOUR_VERIFIED_OPEN_ID",
+  "chat_id": "YOUR_AUTHORIZED_CHAT_ID",
+  "bot_id": "YOUR_BOT_ID",
+  "thread_id": "YOUR_VERIFIED_CODEX_THREAD",
+  "runtime": "C:/Users/YOU/.orbit/runtime/example-bridge",
+  "endpoint": "ws://127.0.0.1:18773"
+}

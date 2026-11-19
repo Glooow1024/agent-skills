@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+services/**/runtime/
+services/**/config.local.json
+.orbit/
+.knowledge-sync/
+services.json
+installation.json
+.env
+.env.*
+!.env.example
+*.log
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*

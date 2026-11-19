@@ -4,7 +4,9 @@
 
 ## 配套工具
 
-- [Knowledge Sync](knowledge-sync/README.md)：Windows 本地知识库定时 Git 同步工具，支持主力电脑与晚间/周末电脑的独立调度、编辑稳定窗口及冲突提醒。
+- [Orbit 本地任务中心](task-center/README.md)：跨项目桌面入口，统一消息桥接、知识库同步、训练监测及其他本地服务；完成任务自动归档并保留完成时间。
+
+- [Knowledge Sync](services/knowledge-sync/README.md)：Windows 本地知识库定时 Git 同步工具，支持主力电脑与晚间/周末电脑的独立调度、编辑稳定窗口及冲突提醒。
 
 ## 仓库结构
 
@@ -22,7 +24,11 @@ agent-skills/
 
 每个 `skills/<skill-name>/` 都是一个独立 skill，以 `SKILL.md` 为入口；只创建该 skill 实际需要的可选目录。
 
+实际注册表：`%USERPROFILE%/.orbit/services.json`，本机为 `C:/Users/Lenovo/.orbit/services.json`。所有接入操作使用 `task-center/orbit.py register`，具体命令见[接入说明](task-center/README.md#跨项目接入)。
+
 ## 已收录 Skills
+
+仓库还包含跨项目本地工具：`task-center/`是Orbit桌面入口（ui/core/adapters），`services/`存放可独立运行的消息桥接、知识库同步和训练监测通用层，`examples/`提供不含真实身份的配置模板。实际实例配置在本机用户目录，项目特有探针和实验协议仍留在项目中。知识库同步只有`services/knowledge-sync/`一份实现。详见[服务说明](services/README.md)与[任务中心接入说明](task-center/README.md)。
 
 | Skill | 用途 |
 |---|---|

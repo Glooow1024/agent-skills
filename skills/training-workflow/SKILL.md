@@ -20,6 +20,12 @@ description: "用于准备、启动、续训、改进或维护机器学习训练
 
 新实验绑定发起任务的当前聊天，经接口核实ID后持久化，不继承旧实验聊天。用户换聊天接续活跃实验时，先按下述参考完成交接与路由迁移；不能靠本次聊天历史充当唯一记录。
 
+## 本机监测接入 Orbit
+
+仅在新增或维护本机监测/常驻服务时，先读[Orbit 接入说明](F:/Development/research/agent-skills/task-center/README.md)及同目录AGENTS.md。唯一入口为`F:/Development/research/agent-skills/task-center/orbit.py`；注册表为`%USERPROFILE%/.orbit/services.json`，本机`C:/Users/Lenovo/.orbit/services.json`。使用`orbit.py register --file <登记JSON绝对路径> --check`后再登记，已有ID的校验与更新均加`--replace`；登记不启动训练。
+
+通用监测代码在`F:/Development/research/agent-skills/services/training-monitor`，项目特有探针与完成判断留在项目中。配置、脚本路径、聊天和通知目标按当前实验核实；同脚本多实例以match_config区分。保留既有队列与历史，完成核验、成功通知、进程退出后才撤下活动入口，不另建永久桌面入口。详细字段与模板以Orbit README和examples为准。
+
 ## 按需读取
 
 - 设计训练、开训和分析结果：读[实验与看板要求](references/experiment-and-dashboard.md)。

@@ -70,13 +70,18 @@ Unregister-ScheduledTask -TaskName ($prefix + '-Pull') -Confirm:$false -ErrorAct
 Register-Worker 'Retry' 'retry' ''
 $session = '<LogonTrigger><Enabled>true</Enabled><UserId>' + $userSid + '</UserId><Delay>PT30S</Delay></LogonTrigger><SessionStateChangeTrigger><Enabled>true</Enabled><StateChange>SessionUnlock</StateChange><UserId>' + $userSid + '</UserId><Delay>PT10S</Delay></SessionStateChangeTrigger>'
 Register-Worker 'Session' 'session' $session
-$shell = New-Object -ComObject WScript.Shell
-$shortcut = $shell.CreateShortcut((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Knowledge Sync.lnk'))
-$shortcut.TargetPath = $pythonwPath
-$shortcut.Arguments = '"' + (Join-Path $PSScriptRoot 'status.py') + '" --config "' + $configPath + '"'
-$shortcut.WorkingDirectory = $PSScriptRoot
-$shortcut.Description = 'Knowledge Sync status, retry and pause'
-$shortcut.Save()
+$registryTool = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'task-center/orbit.py'
+$manifest = @{
+    id=$Name; name=$Name; project='Knowledge'; kind='knowledge-sync'; group='知识库同步';
+    description='Git 知识库同步'; entry=(Join-Path $PSScriptRoot 'sync.py');
+    scripts=@((Join-Path $PSScriptRoot 'sync.py')); args=@('sync','--config',$configPath);
+    config=$configPath; match_config=$configPath; cwd=$PSScriptRoot;
+    health=(Join-Path $runtime 'state.json'); folder=$runtime
+}
+$manifestPath=Join-Path $runtime 'orbit-service.json'
+$manifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+& $pythonPath $registryTool register --file $manifestPath --replace
+if ($LASTEXITCODE -ne 0) { throw 'Sync installed, but Orbit registration failed; inspect the manifest.' }
 Write-Output "Installed profile: $Profile"
 Write-Output "Config: $configPath"
 Get-ScheduledTask -TaskName ($prefix + '-*') | Select-Object TaskName,State
